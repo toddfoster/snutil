@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""
+    snutil
+
+    Back up simple notes into git.
+
+    Modify notes in response to specific tokens or conditions:
+    1. !!ds -> Add date stamp
+    2. - [x] = completed todo -> Mark with datestamp
+
+----
+    TODO: Get desired directory from ~/.snsync ; until then, run from the
+            snsync directory
+
+    depends on:
+      - snsync, a rsync client for Simplenote.
+      - git
+"""
+
+from snsync.simplenote_sync import snsync
+from datetime import datetime as dt
+import subprocess
+import os
+import re
+
+ENABLE_SYNC = True
+ENABLE_GIT  = True
+ENABLE_PROCESS = True
+ACTION_TOKEN = "!!"
+DATESTAMP = dt.now().strftime('%Y%m%d')
+RE_COMPLETED_ITEM_WITHOUT_DATE = re.compile('\s*- \[x\]\s+\D')
+
+
+def syncToSimplenote():
+    if not ENABLE_SYNC:
+        print(f"WARNING: SimpleNote sync disabled (ENABLE_SYNC={ENABLE_SYNC})")
+        return
+    snsync.main()
+
+def commitToGit():
+    if not ENABLE_GIT:
+        print(f"WARNING: git commits disabled (ENABLE_GIT={ENABLE_GIT})")
+        return
+    # TODO: take parameter with commit message, default to datestamp
+    tdstamp = dt.now().strftime('%Y%m%d-%H%M%S')
+    defaultMessage = "snutil auto-commit " + tdstamp
+    subprocess.run(["git", "add", "."])
+    subprocess.run(["git", "commit", "-m", defaultMessage])
+
+SKIP_FILES = {"./.git", "./.snsync.log", "./.trash", "./.snsync.sqlite"}
+def processFiles():
+    if not ENABLE_PROCESS:
+        print(f"WARNING: Processing files disabled (ENABLE_PROCESS={ENABLE_PROCESS})")
+        return
+    for entry in os.scandir('.'):
+        if entry.path not in SKIP_FILES:
+            processFile(entry.path)
+
+def processFile(path):
+    count = 0
+    contents = []
+    changed = False
+    with open(path) as f:
+        for line in f:
+            result = line
+            # !!DS -> DATESTAMP
+            result = result.replace(ACTION_TOKEN+"ds", DATESTAMP)
+            # - [x] -> add DATESTAMP
+            if RE_COMPLETED_ITEM_WITHOUT_DATE.match(result):
+                result = result.replace("- [x] ", f"- [x] {DATESTAMP} ")
+            ## Add other actions here
+            contents.append(result)
+            changed = changed or line != result
+    if changed: 
+        print(f"{path}: {len(contents)}: changed? {changed}")
+        with open(path, 'w') as f:
+            f.writelines(contents)
+
+if __name__ == '__main__':
+    syncToSimplenote()
+    processFiles()
+    commitToGit()
+    syncToSimplenote()

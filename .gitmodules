@@ -1,0 +1,3 @@
+[submodule "snsync"]
+	path = snsync
+	url = https://github.com/linickx/snsync
