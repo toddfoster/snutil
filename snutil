@@ -22,12 +22,14 @@ from datetime import datetime as dt
 import subprocess
 import os
 import re
+import sys
 
 ENABLE_SYNC = True
 ENABLE_GIT  = True
 ENABLE_PROCESS = True
 ACTION_TOKEN = "!!"
 DATESTAMP = dt.now().strftime('%Y%m%d')
+TIMEDATESTAMP = dt.now().strftime('%Y%m%d-%H%M%S')
 RE_COMPLETED_ITEM_WITHOUT_DATE = re.compile('\s*- \[x\]\s+\D')
 
 
@@ -42,8 +44,7 @@ def commitToGit():
         print(f"WARNING: git commits disabled (ENABLE_GIT={ENABLE_GIT})")
         return
     # TODO: take parameter with commit message, default to datestamp
-    tdstamp = dt.now().strftime('%Y%m%d-%H%M%S')
-    defaultMessage = "snutil auto-commit " + tdstamp
+    defaultMessage = "snutil auto-commit"
     subprocess.run(["git", "add", "."])
     subprocess.run(["git", "commit", "-m", defaultMessage])
 
@@ -77,6 +78,7 @@ def processFile(path):
             f.writelines(contents)
 
 if __name__ == '__main__':
+    print(f"{sys.modules[__name__].__file__} running on {TIMEDATESTAMP}")
     syncToSimplenote()
     processFiles()
     commitToGit()
