@@ -11,6 +11,7 @@ Back up and operate on my simplenote contents
     - [ ] report back actions into simplenote entry, rotated
     - [ ] generate a newsfeed note; update it frequently through the day with headlines, weather, etc.
     - [ ] generate a note with a text version of my calendar, given various ical and caldav feeds
+    - [ ] roll forward todo list into a new list, carrying forward headings (*/#) and incomplete tasks; mark old list as archived
 
 ## Ideas that depends on tags
 
