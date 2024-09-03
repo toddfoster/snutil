@@ -78,7 +78,7 @@ def processFile(path):
             f.writelines(contents)
 
 if __name__ == '__main__':
-    print(f"{sys.modules[__name__].__file__} running on {TIMEDATESTAMP}")
+    print(f"*** {sys.modules[__name__].__file__} running on {TIMEDATESTAMP}")
     syncToSimplenote()
     processFiles()
     commitToGit()
